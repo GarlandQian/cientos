@@ -8,6 +8,7 @@ export default defineConfig({
   title: 'Cientos',
   description:
     'Collection of useful helpers and fully functional, ready-made abstractions for TresJS',
+  base: '/cientos/',
   head: [
     ['link', { rel: 'icon', type: 'image/svg', href: '/favicon.svg' }],
     ['meta', { name: 'theme-color', content: '#82DBC5' }],
