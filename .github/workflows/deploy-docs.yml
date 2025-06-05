@@ -1,4 +1,4 @@
-# 更健壮的部署方案
+# 部署 VitePress 文档到 GitHub Pages
 name: Deploy Docs to GitHub Pages
 
 on:
@@ -6,28 +6,31 @@ on:
     branches: [main]
   workflow_dispatch:
 
+# 设置 GITHUB_TOKEN 权限
 permissions:
   contents: read
   pages: write
   id-token: write
 
+# 避免并发部署冲突
 concurrency:
   group: pages
   cancel-in-progress: false
 
 jobs:
+  # 构建作业
   build:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0
+          fetch-depth: 0 # 获取完整历史，VitePress 需要
 
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
         with:
-          version: 9.15.0
+          version: 9.15.0 # 与项目 packageManager 保持一致
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -39,43 +42,20 @@ jobs:
         uses: actions/configure-pages@v4
 
       - name: Install dependencies
-        run: |
-          pnpm install --shamefully-hoist
-          echo "Dependencies installed successfully"
+        run: pnpm install --shamefully-hoist
 
-      - name: Build project
-        run: |
-          pnpm run build
-          echo "Project built successfully"
-          ls -la dist/ || echo "No dist folder found"
-
-      - name: Verify build output
-        run: |
-          if [ ! -f "dist/trescientos.js" ]; then
-            echo "Warning: trescientos.js not found in dist/"
-            ls -la dist/ || echo "No dist folder"
-          else
-            echo "✅ trescientos.js found"
-          fi
+      - name: Build project first
+        run: pnpm run build
 
       - name: Build docs
-        run: |
-          echo "Building docs..."
-          pnpm run docs:build
-          echo "Docs built successfully"
-        env:
-          NODE_OPTIONS: --max-old-space-size=4096
-
-      - name: Check docs output
-        run: |
-          ls -la docs/.vitepress/dist/ || echo "No docs dist folder"
-          find docs/.vitepress/dist -name "*.html" | head -5
+        run: pnpm run docs:build
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
           path: docs/.vitepress/dist
 
+  # 部署作业
   deploy:
     environment:
       name: github-pages
