@@ -1,0 +1,44 @@
+name: Sync Fork with Upstream
+
+on:
+  schedule:
+    - cron: '0 8 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          fetch-depth: 0
+          
+      - name: Sync with upstream
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          
+          # 添加上游仓库
+          git remote add upstream https://github.com/GarlandQian/cientos.git
+          git fetch upstream
+          git fetch origin
+          
+          # 切换到 main 分支
+          git checkout main
+          
+          # 拉取最新的远程更改
+          git pull origin main --no-rebase
+          
+          # 合并上游更改
+          git merge upstream/main --no-edit --allow-unrelated-histories
+          
+          # 推送更改
+          git push origin main
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
